@@ -11,3 +11,4 @@ to run:
 - after running the app, paste your API endpoint in the text input
 
 
+<img width="878" alt="Screen Shot 2023-03-19 at 6 13 54 PM" src="https://user-images.githubusercontent.com/64671485/226225554-64e55295-c31d-420f-bfb8-d50c5df34229.png">

@@ -22,7 +22,7 @@ async function callOpenAI(apiKey, prompt) {
     const gptResponse = await openai.complete({
         engine: 'text-davinci-003',
         prompt,
-        maxTokens: 10,
+        maxTokens: 20,
         temperature: 0.9,
         // topP: 1,
         // presencePenalty: 0,

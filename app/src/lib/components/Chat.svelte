@@ -1,10 +1,13 @@
 <script>
 	import Eliza from 'elizabot';
 	import { beforeUpdate, afterUpdate } from 'svelte';
+	import axios from 'axios';
+	import {serverEndpoint} from '../../configurations'
 
 	let div;
 	let autoscroll;
-	let userMessage;
+	let userPrompt;
+	let APIKey = '';
 
 	beforeUpdate(() => {
 		autoscroll = div && div.offsetHeight + div.scrollTop > div.scrollHeight - 20;
@@ -17,10 +20,33 @@
 	const eliza = new Eliza();
 
 	let comments = [{ author: 'eliza', text: eliza.getInitial() }];
-	let APIKey = '';
 
 	async function handleSubmitChat(event) {
-		getChatReply(userMessage);
+		if (!userPrompt || !APIKey) {
+			return;
+		}
+		comments = comments.concat({
+			author: 'user',
+			text: userPrompt
+		});
+		let response = await makeAPICall(userPrompt);
+		let reply = response.data.reply.choices[0].text;
+		// update chat ui
+		comments = comments
+			.filter((comment) => !comment.placeholder)
+			.concat({
+				author: 'eliza',
+				text: reply
+			});
+		
+		userPrompt = ''
+	}
+
+	async function makeAPICall(userPrompt) {
+		return await axios.post(serverEndpoint, {
+			api: APIKey,
+			message: userPrompt
+		});
 	}
 
 	function getChatReply(text) {
@@ -50,23 +76,20 @@
 			}, 500 + Math.random() * 500);
 		}, 200 + Math.random() * 200);
 	}
-	function handleKeydown(event) {
-		if (event.key === 'Enter') {
-			getChatReply(event.target.value);
-			userMessage = '';
-		}
-	}
+
 </script>
 
 <div class="chat direct-chat card-body flex flex-col">
-	<!-- <div class="flex flex-row">
+	<div class="flex flex-row">
 		<h3 class="text-xl font-bold text-gray-three">Enter your API Key here:</h3>
 		<input bind:value={APIKey} />
+	</div>
+	<!-- <div class="flex flex-row">
+		<h3 class="text-xl font-bold text-gray-three">Enter your Server Endpoint:</h3>
+		<input bind:value={serverEndpoint} />
 	</div> -->
 
-	<h1>Eliza</h1>
-
-	Chat messages
+	<div class="text-xl font-bold text-gray-three">Chat Messages</div>
 	<div class="card-body " bind:this={div}>
 		<div class="direct-chat-messages">
 			{#each comments as comment}
@@ -81,8 +104,7 @@
 	<form class="flex flex-row justify-center" on:submit={handleSubmitChat}>
 		<input
 			class="flex w-full items-center justify-between rounded-md border-2 border-gray-one px-5 py-1"
-			on:keydown={handleKeydown}
-			bind:value={userMessage}
+			bind:value={userPrompt}
 		/>
 		<button
 			class="flex items-center rounded-md border-cream-four bg-green-one px-6 py-1 text-lg font-semibold text-gray-five outline outline-2 outline-offset-2 outline-green-one hover:text-green-five focus-visible:text-green-five focus-visible:outline-green-five"
